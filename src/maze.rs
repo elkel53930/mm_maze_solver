@@ -1,14 +1,14 @@
 #![no_std]
 
 /*
-    - The start is south-west of the maze. The position is (X, Y) = (0, 15)
+    - The start is north-west of the maze. The position is (X, Y) = (0, 0)
     - MAZE consists of CELLs, CELLs have WALLs.
 */
 
-const MAZE_SIZE: usize = 16;
+pub const MAZE_SIZE: usize = 16;
 
 // The start cell is fixed. Those values are basically used to initialize the wall to the right of the start cell.
-const MAZE_START_Y: usize = 15;
+const MAZE_START_Y: usize = 0;
 const MAZE_START_X: usize = 0;
 
 // Based on the size of the maze, calculate the buffer size required for conversion to a string.
@@ -79,7 +79,7 @@ impl Maze {
         let mut maze = Maze { grid, goal: (goal_y, goal_x) };
 
         // The starting cell is walled off except for the front.
-        maze.set_wall2(MAZE_START_Y, MAZE_START_X, Direction::North, Facing::Right, Wall::Present);
+        maze.set_wall2(MAZE_START_Y, MAZE_START_X, Direction::East, Facing::Right, Wall::Present);
 
         maze
     }
@@ -93,7 +93,6 @@ impl Maze {
                         Facing::Right => Direction::East,
                         Facing::Backward => Direction::South,
                         Facing::Left => Direction::West,
-
                     }
                 },
                 Direction::East => {
