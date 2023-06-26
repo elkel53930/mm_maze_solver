@@ -78,10 +78,14 @@ impl MazeInfo<u16> { // StepMap
     }
 }
 
-pub fn decide_direction(maze: &Maze, goal_x: usize, goal_y: usize, row: usize, col: usize, stepmap: &mut StepMap) -> Direction {
+pub fn decide_direction(maze: &Maze, goal_x: usize, goal_y: usize, row: usize, col: usize, stepmap: &mut StepMap) -> Option<Direction> {
     stepmap.calc_step_map(maze, StepMapMode::UnexploredAsAbsent, goal_x, goal_y);
     let mut min_step: u16 = 0xFFFE;
     let mut direction_to_go: Direction = Direction::North;
+
+    if *stepmap.get(row, col) == 0xFFFE {
+        return None;
+    }
 
     for d in TOZAINANBOKU {
         if maze.get_cell(row, col)[d] == Wall::Absent {
@@ -96,5 +100,5 @@ pub fn decide_direction(maze: &Maze, goal_x: usize, goal_y: usize, row: usize, c
             };
         }
     }
-    direction_to_go
+    Some(direction_to_go)
 }
