@@ -68,19 +68,74 @@ impl Position {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Wall {
     Present,
     Absent,
     Unexplored,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Direction {
     North,
     East,
     South,
     West,
+}
+
+pub fn nsew_to_fblr(facing: Direction, direction: Direction) -> DirectionOfTravel {
+    match facing {
+        Direction::North => {
+            match direction {
+                Direction::North => DirectionOfTravel::Forward,
+                Direction::East => DirectionOfTravel::Right,
+                Direction::South => DirectionOfTravel::Backward,
+                Direction::West => DirectionOfTravel::Left,
+            }
+        },
+        Direction::East => {
+            match direction {
+                Direction::North => DirectionOfTravel::Left,
+                Direction::East => DirectionOfTravel::Forward,
+                Direction::South => DirectionOfTravel::Right,
+                Direction::West => DirectionOfTravel::Backward,
+            }
+        },
+        Direction::South => {
+            match direction {
+                Direction::North => DirectionOfTravel::Backward,
+                Direction::East => DirectionOfTravel::Left,
+                Direction::South => DirectionOfTravel::Forward,
+                Direction::West => DirectionOfTravel::Right,
+            }
+        },
+        Direction::West => {
+            match direction {
+                Direction::North => DirectionOfTravel::Right,
+                Direction::East => DirectionOfTravel::Backward,
+                Direction::South => DirectionOfTravel::Left,
+                Direction::West => DirectionOfTravel::Forward,
+            }
+        },
+    }
+}
+
+pub fn nsew_to_index(direction: Direction) -> (isize, isize){
+    match direction {
+        Direction::North => (0, -1),
+        Direction::East => (1, 0),
+        Direction::South => (0, 1),
+        Direction::West => (-1, 0),
+    }
+}
+
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum DirectionOfTravel{
+    Forward,
+    Right,
+    Left,
+    Backward,
 }
 
 pub const TOZAINANBOKU:[Direction; 4] = [
@@ -90,7 +145,7 @@ pub const TOZAINANBOKU:[Direction; 4] = [
     Direction::North,
 ];
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Facing {
     Forward,
     Right,
@@ -98,7 +153,7 @@ pub enum Facing {
     Backward,
 }
 
-#[derive(Clone, Copy, PartialEq)]pub struct Cell {
+#[derive(Debug, Clone, Copy, PartialEq)]pub struct Cell {
     pub north: Wall,
     pub east: Wall,
     pub south: Wall,

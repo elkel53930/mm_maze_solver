@@ -1,13 +1,7 @@
-use super::{maze, maze::{MAZE_SIZE, MazeInfo, Maze, Wall}};
+use std::usize;
 
-const BUFFER_SIZE: usize = 10 * MAZE_SIZE * MAZE_SIZE;
+use super::{maze, maze::{MAZE_SIZE, MazeInfo, Maze, Wall, Direction, DirectionOfTravel, TOZAINANBOKU}};
 
-pub enum DirectionOfTravel{
-    Forward,
-    Right,
-    Left,
-    Backward,
-}
 
 pub type StepMap = MazeInfo<u16>;
 
@@ -51,7 +45,7 @@ impl MazeInfo<u16> { // StepMap
             no_cell_updated = true;
             for i in 0..MAZE_SIZE {
                 for j in 0..MAZE_SIZE {
-                    for direction in maze::TOZAINANBOKU {
+                    for direction in TOZAINANBOKU {
                         if no_wall_present(mode,maze.get_cell(i,j)[direction]) {
                             match maze.get_neighbor(i, j, direction){
                                 Some(_) => {
@@ -81,9 +75,26 @@ impl MazeInfo<u16> { // StepMap
             }
             println!("");
         }
-    }   
+    }
 }
 
-pub fn decide_direction(maze: &Maze) -> DirectionOfTravel {
-    DirectionOfTravel::Forward
+pub fn decide_direction(maze: &Maze, goal_x: usize, goal_y: usize, row: usize, col: usize, stepmap: &mut StepMap) -> Direction {
+    stepmap.calc_step_map(maze, StepMapMode::UnexploredAsAbsent, goal_x, goal_y);
+    let mut min_step: u16 = 0xFFFE;
+    let mut direction_to_go: Direction = Direction::North;
+
+    for d in TOZAINANBOKU {
+        if maze.get_cell(row, col)[d] == Wall::Absent {
+            match stepmap.get_neighbor(row, col, d) {
+                Some(step) => {
+                    if *step < min_step {
+                        min_step = *step;
+                        direction_to_go = d;
+                    }
+                },
+                None => {},
+            };
+        }
+    }
+    direction_to_go
 }
