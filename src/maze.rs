@@ -72,6 +72,7 @@ impl Position {
 pub enum Wall {
     Present,
     Absent,
+    Unexplored,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -234,6 +235,7 @@ impl MazeInfo<Cell> { // Maze
                     match self.grid[y][x].north {
                         Wall::Present => b"---",
                         Wall::Absent => b"   ",
+                        Wall::Unexplored => b"...",
                     }
                 );
                 idx += 3;
@@ -249,6 +251,7 @@ impl MazeInfo<Cell> { // Maze
                     match self.grid[y][x].west {
                         Wall::Present => b"|",
                         Wall::Absent => b" ",
+                        Wall::Unexplored => b":",
                     }
                 );
                 idx += 1;
@@ -265,6 +268,7 @@ impl MazeInfo<Cell> { // Maze
                 match self.grid[y][MAZE_SIZE - 1].east {
                     Wall::Present => b"|",
                     Wall::Absent => b" ",
+                    Wall::Unexplored => b":",
                 }
             );
             idx += 1;
@@ -280,6 +284,7 @@ impl MazeInfo<Cell> { // Maze
                 match self.grid[MAZE_SIZE - 1][x].south {
                     Wall::Present => b"---",
                     Wall::Absent => b"   ",
+                    Wall::Unexplored => b"...",
                 }
             );
             idx += 3;
