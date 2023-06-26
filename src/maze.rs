@@ -1,5 +1,7 @@
 #![no_std]
 
+use std::ops::Index;
+
 /*
     - The start is north-west of the maze. The position is (X, Y) = (0, 0)
     - MAZE consists of CELLs, CELLs have WALLs.
@@ -14,15 +16,65 @@ const MAZE_START_X: usize = 0;
 // Based on the size of the maze, calculate the buffer size required for conversion to a string.
 const BUFFER_SIZE: usize = (MAZE_SIZE * 4 + 2) * (MAZE_SIZE *2 + 1);
 
-type Position = (usize, usize);
+pub struct MazeInfo<T> {
+    pub grid: [[T; MAZE_SIZE]; MAZE_SIZE],
+}
 
+impl<T> MazeInfo<T> {
+    pub fn get(&self, row: usize, col: usize) -> &T {
+        &self.grid[row][col]
+    }
 
-#[derive(Clone, Copy)]
+    pub fn get_mut(&mut self, row: usize, col: usize) -> &mut T {
+        &mut self.grid[row][col]
+    }
+
+    pub fn get_neighbor(&self, row: usize, col: usize, direction: Direction) -> Option<&T> {
+        match direction {
+            Direction::North => { if row == 0 { None } else { Some(self.get(row-1, col)) } }
+            Direction::East => { if col == MAZE_SIZE { None } else { Some(self.get(row, col+1)) } }
+            Direction::South => { if row == MAZE_SIZE { None } else { Some(self.get(row+1, col)) } }
+            Direction::West => { if col == 0 { None } else { Some(self.get(row, col-1)) } }
+        }
+    }
+
+    pub fn get_neighbor_mut(&mut self, row: usize, col: usize, direction: Direction) -> Option<&mut T> {
+        match direction {
+            Direction::North => { if row == 0 { None } else { Some(self.get_mut(row-1, col)) } }
+            Direction::East => { if col == MAZE_SIZE { None } else { Some(self.get_mut(row, col+1)) } }
+            Direction::South => { if row == MAZE_SIZE { None } else { Some(self.get_mut(row+1, col)) } }
+            Direction::West => { if col == 0 { None } else { Some(self.get_mut(row, col-1)) } }
+        }
+    }
+}
+
+pub struct Position {
+    pub row: usize,
+    pub col: usize,
+}
+
+impl Position {
+    pub const fn new(row: usize, col: usize) -> Self {
+        Position { row, col }
+    }
+
+    pub fn neighbor_position(self, direction: Direction) -> Position {
+        match direction {
+            Direction::North => Position{row: self.row - 1, col: self.col},
+            Direction::East => Position{row: self.row, col: self.col + 1},
+            Direction::West => Position{row: self.row, col: self.col - 1},
+            Direction::South => Position{row: self.row + 1, col: self.col},
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq)]
 pub enum Wall {
     Present,
     Absent,
 }
 
+#[derive(Clone, Copy, PartialEq)]
 pub enum Direction {
     North,
     East,
@@ -30,6 +82,14 @@ pub enum Direction {
     West,
 }
 
+pub const TOZAINANBOKU:[Direction; 4] = [
+    Direction::East,
+    Direction::West,
+    Direction::South,
+    Direction::North,
+];
+
+#[derive(Clone, Copy, PartialEq)]
 pub enum Facing {
     Forward,
     Right,
@@ -37,12 +97,24 @@ pub enum Facing {
     Backward,
 }
 
-#[derive(Clone, Copy)]
-pub struct Cell {
+#[derive(Clone, Copy, PartialEq)]pub struct Cell {
     pub north: Wall,
     pub east: Wall,
     pub south: Wall,
     pub west: Wall,
+}
+
+impl Index<Direction> for Cell {
+    type Output = Wall;
+
+    fn index(&self, direction: Direction) -> &Self::Output {
+        match direction {
+            Direction::North => &self.north,
+            Direction::East => &self.east,
+            Direction::South => &self.south,
+            Direction::West => &self.west,
+        }
+    }
 }
 
 impl Cell {
@@ -56,16 +128,8 @@ impl Cell {
     }
 }
 
-pub struct Maze {
-    grid: [[Cell; MAZE_SIZE]; MAZE_SIZE],
-
-    // The goal cell varies depending on the situation.
-    //  e.g. When returning to the start cell, the goal will be set to the start cell.
-    pub goal: Position,
-}
-
-impl Maze {
-    pub fn new(goal_x:usize, goal_y:usize) -> Self {
+impl MazeInfo<Cell> { // Maze
+    pub fn new() -> Self {
         let mut grid = [[Cell::new(); MAZE_SIZE]; MAZE_SIZE];
 
         // Set the walls around the maze
@@ -76,7 +140,7 @@ impl Maze {
             grid[i][MAZE_SIZE-1].east = Wall::Present;
         }
 
-        let mut maze = Maze { grid, goal: (goal_y, goal_x) };
+        let mut maze = MazeInfo { grid: grid };
 
         // The starting cell is walled off except for the front.
         maze.set_wall2(MAZE_START_Y, MAZE_START_X, Direction::East, Facing::Right, Wall::Present);
@@ -156,7 +220,7 @@ impl Maze {
         &self.grid[row][col]
     }
 
-    pub fn to_string(&self) -> [u8; BUFFER_SIZE] {
+    pub fn to_string(&self,goal_x:usize, goal_y:usize) -> [u8; BUFFER_SIZE] {
         let mut s = [b' '; BUFFER_SIZE];
 
         let mut idx = 0;
@@ -188,7 +252,7 @@ impl Maze {
                     }
                 );
                 idx += 1;
-                if self.goal.0 == x && self.goal.1 == y {
+                if goal_x == x && goal_y == y {
                     s[idx..idx+3].copy_from_slice(b" G "); // The cell's space (the goal)
                 } else if MAZE_START_X == x && MAZE_START_Y == y {
                     s[idx..idx+3].copy_from_slice(b" S "); // The cell's space (the start)
@@ -227,3 +291,5 @@ impl Maze {
         s
     }
 }
+
+pub type Maze = MazeInfo<Cell>;

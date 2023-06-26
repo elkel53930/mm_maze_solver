@@ -27,7 +27,7 @@ impl ReaderStateMachine {
     }
 }
 
-pub fn read(maze: &mut Maze, filename: String) {
+pub fn read(maze: &mut Maze, goal_x: &mut usize, goal_y: &mut usize, filename: String) {
     let path = Path::new(&filename);
     let mut file = match File::open(&path) {
         Err(_) => panic!("couldn't open {}", path.display()),
@@ -104,8 +104,8 @@ pub fn read(maze: &mut Maze, filename: String) {
                     },
                     'G' => {
                         machine.state = State::VerticalWall;
-                        maze.goal.0 = machine.col-1;
-                        maze.goal.1 = machine.row;
+                        *goal_x = machine.col-1;
+                        *goal_y = machine.row;
                     },
                     'S' => {
                         machine.state = State::VerticalWall;
