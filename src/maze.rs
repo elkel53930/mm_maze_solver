@@ -1,6 +1,9 @@
-#![no_std]
-
-use std::ops::Index;
+use core::prelude::v1::derive;
+use core::marker::Copy;
+use core::cmp::PartialEq;
+use core::fmt::Debug;
+use core::clone::Clone;
+use core::option::{Option, Option::{None,Some}};
 
 /*
     - The start is north-west of the maze. The position is (X, Y) = (0, 0)
@@ -160,19 +163,6 @@ pub enum Facing {
     pub west: Wall,
 }
 
-impl Index<Direction> for Cell {
-    type Output = Wall;
-
-    fn index(&self, direction: Direction) -> &Self::Output {
-        match direction {
-            Direction::North => &self.north,
-            Direction::East => &self.east,
-            Direction::South => &self.south,
-            Direction::West => &self.west,
-        }
-    }
-}
-
 impl Cell {
     pub const fn new() -> Self {
         Cell {
@@ -180,6 +170,15 @@ impl Cell {
             east: Wall::Absent,
             south: Wall::Absent,
             west: Wall::Absent,
+        }
+    }
+
+    pub const fn get(&self, direction: Direction) -> Wall {
+        match direction {
+            Direction::North => self.north,
+            Direction::East => self.east,
+            Direction::South => self.south,
+            Direction::West => self.west,
         }
     }
 }

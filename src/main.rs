@@ -3,7 +3,7 @@ mod maze;
 mod solver;
 use std::str;
 
-use maze::{Maze, TOZAINANBOKU};
+use maze::{Maze, MAZE_SIZE, TOZAINANBOKU};
 use solver::{StepMap, StepMapMode};
 
 use crate::solver::decide_direction;
@@ -22,10 +22,19 @@ fn main() {
     simulate(&actual_maze, goal_x, goal_y);    
 }
 
+fn display(stepmap: &StepMap) {
+    for i in 0..MAZE_SIZE {
+        for j in 0..MAZE_SIZE {
+            print!("{:^4X} ", stepmap.get(i, j));
+        }
+        println!("");
+    }
+}
+
 fn update_wall(actual_maze: &Maze, row: usize, col: usize, local_maze :&mut Maze)
 {
     for d in TOZAINANBOKU {
-        local_maze.set_wall(row, col, d, actual_maze.get(row, col)[d]);
+        local_maze.set_wall(row, col, d, actual_maze.get(row, col).get(d));
     }
 }
 

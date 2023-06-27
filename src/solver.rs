@@ -1,6 +1,6 @@
-use std::usize;
+use core::usize;
 
-use super::{maze, maze::{MAZE_SIZE, MazeInfo, Maze, Wall, Direction, DirectionOfTravel, TOZAINANBOKU}};
+use super::{maze::{MAZE_SIZE, MazeInfo, Maze, Wall, Direction, DirectionOfTravel, TOZAINANBOKU}};
 
 
 pub type StepMap = MazeInfo<u16>;
@@ -46,7 +46,7 @@ impl MazeInfo<u16> { // StepMap
             for i in 0..MAZE_SIZE {
                 for j in 0..MAZE_SIZE {
                     for direction in TOZAINANBOKU {
-                        if no_wall_present(mode,maze.get_cell(i,j)[direction]) {
+                        if no_wall_present(mode,maze.get_cell(i,j).get(direction)) {
                             match maze.get_neighbor(i, j, direction){
                                 Some(_) => {
                                     let neighbor;
@@ -67,15 +67,6 @@ impl MazeInfo<u16> { // StepMap
             } 
         }
     }
-
-    pub fn display(&self) {
-        for i in 0..MAZE_SIZE {
-            for j in 0..MAZE_SIZE {
-                print!("{:^4X} ", self.get(i, j));
-            }
-            println!("");
-        }
-    }
 }
 
 pub fn decide_direction(maze: &Maze, goal_x: usize, goal_y: usize, row: usize, col: usize, stepmap: &mut StepMap) -> Option<Direction> {
@@ -88,7 +79,7 @@ pub fn decide_direction(maze: &Maze, goal_x: usize, goal_y: usize, row: usize, c
     }
 
     for d in TOZAINANBOKU {
-        if maze.get_cell(row, col)[d] == Wall::Absent {
+        if maze.get_cell(row, col).get(d) == Wall::Absent {
             match stepmap.get_neighbor(row, col, d) {
                 Some(step) => {
                     if *step < min_step {
