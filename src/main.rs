@@ -2,6 +2,7 @@ mod reader;
 mod maze;
 mod solver;
 use std::str;
+use glob::glob;
 
 use maze::{Maze, MAZE_SIZE, TOZAINANBOKU};
 use solver::{StepMap, StepMapMode};
@@ -13,13 +14,19 @@ fn main() {
     let mut goal_x: usize = 0;  
     let mut goal_y: usize = 0;
 
-    reader::read(&mut actual_maze, &mut goal_x, &mut goal_y, String::from("assets/maze_sample.txt"));
+    let files = glob("assets/*.txt")
+        .unwrap()
+        .map(|e| e.unwrap())
+        .collect::<Vec<_>>();   println!("{:?}", files);
+    for file in files{
+        reader::read(&mut actual_maze, &mut goal_x, &mut goal_y, String::from(file.to_str().unwrap()));
+        println!("{}", file.to_str().unwrap());
+        if !simulate(&actual_maze, goal_x, goal_y) {
+            println!("Cannot reach the goal!");
+            break;
+        }
+    }
 
-    let maze_string = actual_maze.to_string(goal_x, goal_y);
-    let maze_string = str::from_utf8(&maze_string).expect("Found invalid UTF-8");
-    println!("{}", maze_string.trim_end_matches(char::from(0)));
-
-    simulate(&actual_maze, goal_x, goal_y);    
 }
 
 fn display(stepmap: &StepMap) {
@@ -38,7 +45,7 @@ fn update_wall(actual_maze: &Maze, row: usize, col: usize, local_maze :&mut Maze
     }
 }
 
-fn simulate(actual_maze: &Maze, goal_x: usize, goal_y: usize)
+fn simulate(actual_maze: &Maze, goal_x: usize, goal_y: usize) -> bool
 {
     let mut x: usize = 0;
     let mut y: usize = 0;
@@ -60,8 +67,9 @@ fn simulate(actual_maze: &Maze, goal_x: usize, goal_y: usize)
             },
             None => {
                 println!("Cannot reach the goal!");
-                break;
+                return false;
             }
         }
     }
+    true
 }

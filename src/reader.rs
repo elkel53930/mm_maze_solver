@@ -40,6 +40,8 @@ pub fn read(maze: &mut Maze, goal_x: &mut usize, goal_y: &mut usize, filename: S
     }
 
     let mut machine = ReaderStateMachine::new();
+    
+    *maze = Maze::new();
 
     for c in s.chars() {
         match machine.state {

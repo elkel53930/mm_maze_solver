@@ -32,12 +32,11 @@ impl MazeInfo<u16> { // StepMap
             }
         }
 
-
-        for i in 0..MAZE_SIZE {
-            for j in 0.. MAZE_SIZE {
-                *self.get_mut(i, j) = 0xFFFE; // Not set to 0xFFFF because it may be +1
-            }
-        }
+        self.grid.iter_mut().for_each(|i| {
+            i.iter_mut().for_each(|j| {
+                *j = 0xFFFE; // Not set to 0xFFFF because it may be +1
+            });
+        });
 
         *self.get_mut(goal_x, goal_y) = 0;
 
