@@ -1,6 +1,6 @@
 mod reader;
-mod maze;
-mod solver;
+use mm_maze_solver::maze;
+use mm_maze_solver::solver;
 use std::str;
 use glob::glob;
 
