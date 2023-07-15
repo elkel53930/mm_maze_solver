@@ -1,19 +1,21 @@
 use core::usize;
 
-use super::{maze::{MAZE_SIZE, MazeInfo, Maze, Wall, Direction, DirectionOfTravel, TOZAINANBOKU}};
-
+use super::maze::{Direction, DirectionOfTravel, Maze, MazeInfo, Wall, MAZE_SIZE, TOZAINANBOKU};
 
 pub type StepMap = MazeInfo<u16>;
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum StepMapMode{
+pub enum StepMapMode {
     UnexploredAsAbsent,
     UnexploredAsPresent,
 }
 
-impl MazeInfo<u16> { // StepMap
+impl MazeInfo<u16> {
+    // StepMap
     pub fn new() -> Self {
-        let map = StepMap{grid: [[0; MAZE_SIZE]; MAZE_SIZE]};
+        let map = StepMap {
+            grid: [[0; MAZE_SIZE]; MAZE_SIZE],
+        };
 
         map
     }
@@ -23,12 +25,8 @@ impl MazeInfo<u16> { // StepMap
 
         fn no_wall_present(mode: StepMapMode, wall: Wall) -> bool {
             match mode {
-                StepMapMode::UnexploredAsAbsent => {
-                    wall == Wall::Absent || wall == Wall::Unexplored
-                },
-                StepMapMode::UnexploredAsPresent => {
-                    wall == Wall::Absent
-                },
+                StepMapMode::UnexploredAsAbsent => wall == Wall::Absent || wall == Wall::Unexplored,
+                StepMapMode::UnexploredAsPresent => wall == Wall::Absent,
             }
         }
 
@@ -45,15 +43,15 @@ impl MazeInfo<u16> { // StepMap
             for i in 0..MAZE_SIZE {
                 for j in 0..MAZE_SIZE {
                     for direction in TOZAINANBOKU {
-                        if no_wall_present(mode,maze.get_cell(i,j).get(direction)) {
-                            match maze.get_neighbor(i, j, direction){
+                        if no_wall_present(mode, maze.get_cell(i, j).get(direction)) {
+                            match maze.get_neighbor(i, j, direction) {
                                 Some(_) => {
                                     let neighbor;
                                     {
                                         neighbor = *self.get_neighbor(i, j, direction).unwrap();
                                     }
                                     let current = self.get_mut(i, j);
-                                    if *current > (neighbor+1) {
+                                    if *current > (neighbor + 1) {
                                         *current = neighbor + 1;
                                         no_cell_updated = false;
                                     }
@@ -63,12 +61,19 @@ impl MazeInfo<u16> { // StepMap
                         }
                     }
                 }
-            } 
+            }
         }
     }
 }
 
-pub fn decide_direction(maze: &Maze, goal_x: usize, goal_y: usize, row: usize, col: usize, stepmap: &mut StepMap) -> Option<Direction> {
+pub fn decide_direction(
+    maze: &Maze,
+    goal_x: usize,
+    goal_y: usize,
+    row: usize,
+    col: usize,
+    stepmap: &mut StepMap,
+) -> Option<Direction> {
     stepmap.calc_step_map(maze, StepMapMode::UnexploredAsAbsent, goal_x, goal_y);
     let mut min_step: u16 = 0xFFFE;
     let mut direction_to_go: Direction = Direction::North;
@@ -85,8 +90,8 @@ pub fn decide_direction(maze: &Maze, goal_x: usize, goal_y: usize, row: usize, c
                         min_step = *step;
                         direction_to_go = d;
                     }
-                },
-                None => {},
+                }
+                None => {}
             };
         }
     }
