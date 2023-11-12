@@ -11,6 +11,21 @@ use core::prelude::v1::derive;
 /*
     - The start is north-west of the maze. The position is (X, Y) = (0, 0)
     - MAZE consists of CELLs, CELLs have WALLs.
+
+    - Direction
+         N
+        W+E
+         S
+
+    - Coordinate system
+        +------> X
+        |
+        |
+        V
+        Y
+
+    - Initial position
+        -> (X:0, Y:0, Heading:East)
 */
 
 pub const MAZE_SIZE: usize = 16;
