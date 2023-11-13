@@ -1,6 +1,6 @@
 use core::usize;
 
-use super::maze::{Direction, DirectionOfTravel, Maze, MazeInfo, Wall, MAZE_SIZE, TOZAINANBOKU};
+use super::maze::{Direction, Maze, MazeInfo, Wall, MAZE_SIZE, TOZAINANBOKU};
 
 pub type StepMap = MazeInfo<u16>;
 
