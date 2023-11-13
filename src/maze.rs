@@ -381,6 +381,7 @@ pub struct MazeLinesIter<'a> {
     goal_x: usize,
     goal_y: usize,
     current_line: usize,
+    is_finished: bool,
 }
 
 impl<'a> MazeLinesIter<'a> {
@@ -389,7 +390,8 @@ impl<'a> MazeLinesIter<'a> {
             maze_info,
             goal_x,
             goal_y,
-            current_line: 0,
+            current_line: MAZE_SIZE * 2,
+            is_finished: false,
         }
     }
 }
@@ -398,7 +400,7 @@ impl<'a> Iterator for MazeLinesIter<'a> {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current_line >= MAZE_SIZE * 2 + 1 {
+        if self.is_finished{
             return None;
         }
 
@@ -444,7 +446,13 @@ impl<'a> Iterator for MazeLinesIter<'a> {
             });
         }
 
-        self.current_line += 1;
+        if self.current_line == 0 {
+            self.is_finished = true;
+        }else{
+            self.current_line -= 1;
+        }
+
+
         Some(line)
     }
 }
