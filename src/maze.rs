@@ -1,13 +1,3 @@
-use core::clone::Clone;
-use core::cmp::PartialEq;
-use core::fmt::Debug;
-use core::marker::Copy;
-use core::option::{
-    Option,
-    Option::{None, Some},
-};
-use core::prelude::v1::derive;
-
 /*
     - The start is north-west of the maze. The position is (X, Y) = (0, 0)
     - MAZE consists of CELLs, CELLs have WALLs.
@@ -33,9 +23,6 @@ pub const MAZE_SIZE: usize = 16;
 // The start cell is fixed. Those values are basically used to initialize the wall to the right of the start cell.
 const MAZE_START_Y: usize = 0;
 const MAZE_START_X: usize = 0;
-
-// Based on the size of the maze, calculate the buffer size required for conversion to a string.
-const BUFFER_SIZE: usize = (MAZE_SIZE * 4 + 2) * (MAZE_SIZE * 2 + 1);
 
 pub struct MazeInfo<T> {
     pub grid: [[T; MAZE_SIZE]; MAZE_SIZE],
@@ -198,6 +185,35 @@ pub fn nsew_to_fblr(facing: Direction, direction: Direction) -> DirectionOfTrave
     }
 }
 
+pub fn fblr_to_nsew(facing: Direction, direction: DirectionOfTravel) -> Direction {
+    match facing {
+        Direction::North => match direction {
+            DirectionOfTravel::Forward => Direction::North,
+            DirectionOfTravel::Right => Direction::East,
+            DirectionOfTravel::Backward => Direction::South,
+            DirectionOfTravel::Left => Direction::West,
+        },
+        Direction::East => match direction {
+            DirectionOfTravel::Forward => Direction::East,
+            DirectionOfTravel::Right => Direction::South,
+            DirectionOfTravel::Backward => Direction::West,
+            DirectionOfTravel::Left => Direction::North,
+        },
+        Direction::South => match direction {
+            DirectionOfTravel::Forward => Direction::South,
+            DirectionOfTravel::Right => Direction::West,
+            DirectionOfTravel::Backward => Direction::North,
+            DirectionOfTravel::Left => Direction::East,
+        },
+        Direction::West => match direction {
+            DirectionOfTravel::Forward => Direction::West,
+            DirectionOfTravel::Right => Direction::North,
+            DirectionOfTravel::Backward => Direction::East,
+            DirectionOfTravel::Left => Direction::South,
+        },
+    }
+}
+
 pub fn nsew_to_index(direction: Direction) -> (isize, isize) {
     match direction {
         Direction::North => (0, -1),
@@ -355,71 +371,81 @@ impl MazeInfo<Cell> {
         &self.grid[row][col]
     }
 
-    pub fn to_string(&self, goal_x: usize, goal_y: usize) -> [u8; BUFFER_SIZE] {
-        let mut s = [b' '; BUFFER_SIZE];
+    pub fn lines_iter(&self, goal_x: usize, goal_y: usize) -> MazeLinesIter {
+        MazeLinesIter::new(self, goal_x, goal_y)
+    }
+}
 
-        let mut idx = 0;
+pub struct MazeLinesIter<'a> {
+    maze_info: &'a MazeInfo<Cell>,
+    goal_x: usize,
+    goal_y: usize,
+    current_line: usize,
+}
 
-        for y in 0..MAZE_SIZE {
-            // Write the "top" wall of the cells
+impl<'a> MazeLinesIter<'a> {
+    fn new(maze_info: &'a MazeInfo<Cell>, goal_x: usize, goal_y: usize) -> Self {
+        MazeLinesIter {
+            maze_info,
+            goal_x,
+            goal_y,
+            current_line: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for MazeLinesIter<'a> {
+    type Item = String;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current_line >= MAZE_SIZE * 2 + 1 {
+            return None;
+        }
+
+        let mut line = String::new();
+        let y = self.current_line / 2;
+
+        if self.current_line % 2 == 0 {
+            // Top wall of cells
             for x in 0..MAZE_SIZE {
-                s[idx] = b'+';
-                idx += 1;
-                s[idx..idx + 3].copy_from_slice(match self.grid[y][x].north {
-                    Wall::Present => b"---",
-                    Wall::Absent => b"   ",
-                    Wall::Unexplored => b"...",
-                });
-                idx += 3;
-            }
-            s[idx] = b'+';
-            idx += 1;
-            s[idx] = b'\n';
-            idx += 1;
-
-            // Write the "sides" of the cells
-            for x in 0..MAZE_SIZE {
-                s[idx..idx + 1].copy_from_slice(match self.grid[y][x].west {
-                    Wall::Present => b"|",
-                    Wall::Absent => b" ",
-                    Wall::Unexplored => b":",
-                });
-                idx += 1;
-                if goal_x == x && goal_y == y {
-                    s[idx..idx + 3].copy_from_slice(b" G "); // The cell's space (the goal)
-                } else if MAZE_START_X == x && MAZE_START_Y == y {
-                    s[idx..idx + 3].copy_from_slice(b" S "); // The cell's space (the start)
+                line.push('+');
+                if y < MAZE_SIZE {
+                    line.push_str(match self.maze_info.grid[y][x].north {
+                        Wall::Present => "---",
+                        Wall::Absent => "   ",
+                        Wall::Unexplored => "...",
+                    });
                 } else {
-                    s[idx..idx + 3].copy_from_slice(b"   "); // The cell's space
+                    // This is the bottom edge of the maze
+                    line.push_str("---");
                 }
-                idx += 3;
             }
-            s[idx..idx + 1].copy_from_slice(match self.grid[y][MAZE_SIZE - 1].east {
-                Wall::Present => b"|",
-                Wall::Absent => b" ",
-                Wall::Unexplored => b":",
+            line.push('+');
+        } else {
+            // Sides of cells
+            for x in 0..MAZE_SIZE {
+                line.push(match self.maze_info.grid[y][x].west {
+                    Wall::Present => '|',
+                    Wall::Absent => ' ',
+                    Wall::Unexplored => ':',
+                });
+                if self.goal_x == x && self.goal_y == y {
+                    line.push_str(" G ");
+                } else if MAZE_START_X == x && MAZE_START_Y == y {
+                    line.push_str(" S ");
+                } else {
+                    line.push_str("   ");
+                }
+            }
+            line.push(match self.maze_info.grid[y][MAZE_SIZE - 1].east {
+                Wall::Present => '|',
+                Wall::Absent => ' ',
+                Wall::Unexplored => ':',
             });
-            idx += 1;
-            s[idx] = b'\n';
-            idx += 1;
         }
 
-        // Write the bottom wall of the maze
-        for x in 0..MAZE_SIZE {
-            s[idx] = b'+';
-            idx += 1;
-            s[idx..idx + 3].copy_from_slice(match self.grid[MAZE_SIZE - 1][x].south {
-                Wall::Present => b"---",
-                Wall::Absent => b"   ",
-                Wall::Unexplored => b"...",
-            });
-            idx += 3;
-        }
-        s[idx] = b'+';
-        idx += 1;
-        s[idx] = b'\n';
-
-        s
+        self.current_line += 1;
+        Some(line)
     }
 }
 

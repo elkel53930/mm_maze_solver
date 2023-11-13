@@ -20,6 +20,11 @@ fn main() {
         .collect::<Vec<_>>();   println!("{:?}", files);
     for file in files{
         reader::read(&mut actual_maze, &mut goal_x, &mut goal_y, String::from(file.to_str().unwrap()));
+
+        for line in actual_maze.lines_iter(goal_x, goal_y) {
+            println!("{}", line);
+        }
+
         println!("{}", file.to_str().unwrap());
         if !simulate(&actual_maze, goal_x, goal_y) {
             println!("Cannot reach the goal!");
