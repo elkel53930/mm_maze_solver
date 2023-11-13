@@ -2,10 +2,9 @@ mod reader;
 use glob::glob;
 use mm_maze_solver::maze;
 use mm_maze_solver::solver;
-use std::str;
 
 use maze::{Maze, MAZE_SIZE, TOZAINANBOKU};
-use solver::{StepMap, StepMapMode};
+use solver::StepMap;
 
 use crate::solver::decide_direction;
 
@@ -79,5 +78,8 @@ fn simulate(actual_maze: &Maze, goal_x: usize, goal_y: usize) -> bool {
             }
         }
     }
+
+    display(&stepmap);
+
     true
 }

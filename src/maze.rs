@@ -400,7 +400,7 @@ impl<'a> Iterator for MazeLinesIter<'a> {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.is_finished{
+        if self.is_finished {
             return None;
         }
 
@@ -448,10 +448,9 @@ impl<'a> Iterator for MazeLinesIter<'a> {
 
         if self.current_line == 0 {
             self.is_finished = true;
-        }else{
+        } else {
             self.current_line -= 1;
         }
-
 
         Some(line)
     }
